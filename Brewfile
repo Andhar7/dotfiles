@@ -7,6 +7,8 @@ brew "lazygit"
 brew "powerlevel10k"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
+brew "fzf"
+brew "tree-sitter-cli"
 
 # GUI apps
 cask "wezterm"
