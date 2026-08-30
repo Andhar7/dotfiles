@@ -39,6 +39,22 @@ link "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 link "$DOTFILES_DIR/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 link "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 
+# 4. Install TPM (Tmux Plugin Manager) and pull the tmux plugins
+TPM_DIR="$HOME/.tmux/plugins/tpm"
+if [ ! -d "$TPM_DIR" ]; then
+	echo "==> Installing TPM (Tmux Plugin Manager)..."
+	git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+fi
+echo "==> Installing tmux plugins..."
+# install_plugins needs a live tmux server with our config sourced
+# (that's what sets TMUX_PLUGIN_MANAGER_PATH) — spin up a throwaway
+# session for it if nothing is running yet.
+tmux start-server
+tmux new-session -d -s _tpm_install -c "$HOME" 2>/dev/null || true
+tmux source-file "$HOME/.config/tmux/tmux.conf"
+"$TPM_DIR/bin/install_plugins"
+tmux kill-session -t _tpm_install 2>/dev/null || true
+
 echo ""
 echo "==> Done! 🙏"
 echo "==> Open a new terminal window (or run: exec zsh) to see everything active."
