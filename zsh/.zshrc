@@ -22,3 +22,7 @@ setopt hist_verify
 
 source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+. "$HOME/.local/bin/env"
+autoload -Uz compinit && compinit
+eval "$(uv generate-shell-completion zsh)"
