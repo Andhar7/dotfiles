@@ -48,9 +48,11 @@ maintain those configs in one place.
 
    This will:
    - Install Homebrew if it's missing
-   - Install neovim, tmux, wezterm, lazygit, git, gh, powerlevel10k, zsh plugins, and the MesloLGS Nerd Font
+   - Install neovim, tmux, wezterm, lazygit, git, gh, powerlevel10k, zsh plugins, node, uv, and the MesloLGS Nerd Font
    - Link every config file into the right place (any existing file is backed
      up first, as `filename.bak`, never deleted)
+   - Bootstrap Neovim's plugins, then install the Python/Django LSP +
+     formatting toolchain (pyright, efm-langserver, black, isort, flake8, djlint)
 
 4. **Open a new terminal window** (or run `exec zsh`) — the new prompt, tmux
    config, and everything else should now be active.

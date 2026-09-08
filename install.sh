@@ -39,7 +39,55 @@ link "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 link "$DOTFILES_DIR/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 link "$DOTFILES_DIR/git/.gitconfig" "$HOME/.gitconfig"
 
-# 4. Install TPM (Tmux Plugin Manager) and pull the tmux plugins
+# 4. Bootstrap Neovim plugins (vim.pack downloads everything declared in
+#    init.lua on first launch, including nvim-treesitter and mason.nvim)
+echo "==> Bootstrapping Neovim plugins (first launch, may take a minute)..."
+nvim --headless "+qa" 2>&1 | tail -5 || true
+
+# 5. Install the Python/Django LSP + formatting toolchain
+#    - pyright, efm-langserver: LSP servers, installed via Mason (needs node,
+#      which the Brewfile just installed)
+#    - black, isort, flake8, djlint: the actual formatter/linter binaries efm
+#      shells out to, installed as global uv tools so they work in any project
+echo "==> Installing Python/Django tooling (pyright, efm, black, isort, flake8, djlint)..."
+MASON_INSTALL_LUA="$(mktemp "${TMPDIR:-/tmp}/mason-install-XXXXXX")"
+mv "$MASON_INSTALL_LUA" "$MASON_INSTALL_LUA.lua"
+MASON_INSTALL_LUA="$MASON_INSTALL_LUA.lua"
+cat >"$MASON_INSTALL_LUA" <<'LUA'
+local reg = require("mason-registry")
+local done = false
+reg.refresh(function()
+	local names = { "pyright", "efm" }
+	local pending = 0
+	local function on_one_done()
+		pending = pending - 1
+		if pending == 0 then
+			done = true
+		end
+	end
+	for _, n in ipairs(names) do
+		local pkg = reg.get_package(n)
+		if not pkg:is_installed() then
+			pending = pending + 1
+			pkg:install():once("closed", on_one_done)
+		end
+	end
+	if pending == 0 then
+		done = true
+	end
+end)
+vim.wait(120000, function()
+	return done
+end, 200)
+LUA
+nvim --headless -S "$MASON_INSTALL_LUA" "+qa" 2>&1 | tail -20 || true
+rm -f "$MASON_INSTALL_LUA"
+
+for tool in black isort flake8 djlint; do
+	uv tool install "$tool" --quiet || true
+done
+
+# 6. Install TPM (Tmux Plugin Manager) and pull the tmux plugins
 TPM_DIR="$HOME/.tmux/plugins/tpm"
 if [ ! -d "$TPM_DIR" ]; then
 	echo "==> Installing TPM (Tmux Plugin Manager)..."
